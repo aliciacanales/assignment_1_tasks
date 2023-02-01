@@ -1,0 +1,47 @@
+---
+title: "Assignment_1_tasks"
+author: "Alicia Canales"
+date: "2023-01-31"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(cowplot)
+library(patchwork)
+library(tidyverse)
+library(lubridate)
+library(readxl)
+library(here)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+# reading in the data
+frogs <- read_xlsx(here("data", "sierra_amphibians.xlsx"))
+
+# wrangling
+yellow_frog <- frogs %>% 
+  filter(amphibian_species == "RAMU", amphibian_life_stage != 'EggMass') %>% 
+  mutate(date = ymd(survey_date)) %>% 
+  mutate(year = year(date)) %>% 
+  select(year, amphibian_species, amphibian_life_stage, amphibian_number, lake_id, amphibian_location) %>% 
+  group_by(year, amphibian_life_stage)
+```
+
+```{r}
+# creating the graph
+yellow_frog_plot <- ggplot(data = yellow_frog, aes(fill = amphibian_life_stage, x = year, y = amphibian_number)) + 
+  geom_bar(position = 'dodge', stat = 'identity') + 
+  scale_x_continuous(breaks = seq(from = 1995, to = 2002)) + 
+  labs(x = "Year", y = "Frog Count", title = "Mountain yellow-legged frog (Rana muscosa) count by life stage from 1995 to 2002", fill = "Life Stage") + scale_fill_manual(values = c("hotpink", "lightblue", "forestgreen")) +
+  theme_bw()
+yellow_frog_plot
+```
+
+
+
+
+
