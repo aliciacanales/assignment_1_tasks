@@ -2,7 +2,8 @@
 title: "Assignment_1_tasks"
 author: "Alicia Canales"
 date: "2023-01-31"
-output: html_document
+output: 
+  html_document:
 ---
 
 ```{r setup, include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
@@ -66,9 +67,33 @@ t5_rename <- t5_sub_and_adult_y %>%
 
 ```{r}
 #plotting the top 5 lakes with the most frog counts
-lake_plot <- ggplot(data = t5_rename, aes(x = fct_reorder(lake_id, total_frogs), y = total_frogs, fill = total_frogs)) + labs(x = "Lake Identification", y = "Combined Adult and Subadult frog count", title = "Total count of combined adult and subadult endangered mountain yellow-legged frogs in 5 lakes", fill = "Total Frogs") + scale_fill_gradient(low = "blue", high = "red") + geom_col()
+lake_plot <- ggplot(data = t5_rename, aes(x = fct_reorder(lake_id, total_frogs), y = total_frogs, fill = total_frogs)) + labs(x = "Lake Identification", y = "Combined Adult and Subadult frog count", title = "Total count of combined adult and subadult endangered mountain yellow-legged frogs in 5 lakes", fill = "Total Frogs") + scale_fill_gradient(low = "blue", high = "green") + geom_col()
 lake_plot
 ```
+
+```{r}
+# Combining two graphs into single figure 
+plot_grid(yellow_frog_plot,lake_plot,
+          nrows = 1,
+          ncol = 2,
+          labels = c('A','B'),
+          align = "hv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
