@@ -15,6 +15,7 @@ library(readxl)
 library(here)
 library(dplyr)
 library(ggplot2)
+library(RColorBrewer)
 ```
 
 
@@ -29,6 +30,8 @@ yellow_frog <- frogs %>%
   mutate(year = year(date)) %>% 
   select(year, amphibian_species, amphibian_life_stage, amphibian_number, lake_id, amphibian_location) %>% 
   group_by(year, amphibian_life_stage)
+
+summary(yellow_frog)
 ```
 
 ```{r}
@@ -39,9 +42,33 @@ yellow_frog_plot <- ggplot(data = yellow_frog, aes(fill = amphibian_life_stage, 
   labs(x = "Year", y = "Frog Count", title = "Mountain yellow-legged frog (Rana muscosa) count by life stage from 1995 to 2002", fill = "Life Stage") + scale_fill_manual(values = c("hotpink", "lightblue", "forestgreen")) +
   theme_bw()
 yellow_frog_plot
+
 ```
 
+```{r}
+# going to wrangle more data by removing tadpoles from levels
+t5_sub_and_adult_y <- yellow_frog %>% 
+  filter(amphibian_life_stage != 'Tadpole') %>% 
+  group_by(lake_id) %>% 
+  drop_na() %>% 
+  summarise(total_frogs = sum(amphibian_number)) %>% 
+  slice_max(total_frogs, n = 5) %>% 
+  arrange(-total_frogs) # in high-to-low
 
+t5_rename <- t5_sub_and_adult_y %>% 
+  mutate(lake_id = factor(lake_id),
+         lake_id = c("Lake 50183",
+                    "Lake 10223",
+                    "Lake 10329",
+                    "Lake 20196",
+                    "Lake 10225"))
+```
+
+```{r}
+#plotting the top 5 lakes with the most frog counts
+lake_plot <- ggplot(data = t5_rename, aes(x = fct_reorder(lake_id, total_frogs), y = total_frogs, fill = total_frogs)) + labs(x = "Lake Identification", y = "Combined Adult and Subadult frog count", title = "Total count of combined adult and subadult endangered mountain yellow-legged frogs in 5 lakes", fill = "Total Frogs") + scale_fill_gradient(low = "blue", high = "red") + geom_col()
+lake_plot
+```
 
 
 
