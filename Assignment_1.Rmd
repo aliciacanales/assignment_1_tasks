@@ -4,6 +4,7 @@ author: "Alicia Canales"
 date: "2023-01-31"
 output: 
   html_document:
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
@@ -16,7 +17,6 @@ library(readxl)
 library(here)
 library(dplyr)
 library(ggplot2)
-library(RColorBrewer)
 ```
 
 
@@ -24,23 +24,23 @@ library(RColorBrewer)
 # reading in the data
 frogs <- read_xlsx(here("data", "sierra_amphibians.xlsx"))
 
-# wrangling
-yellow_frog <- frogs %>% 
+# wrangling data
+yellow_frog <- frogs %>% # making a new dataset that will only contain the yellow-legged frog excluding the 'eggmass' lifestage. the dataset will only contain adult and subadult lifestages 
   filter(amphibian_species == "RAMU", amphibian_life_stage != 'EggMass') %>% 
-  mutate(date = ymd(survey_date)) %>% 
+  mutate(date = ymd(survey_date)) %>% # changing the year variable format so that R can read the string of numbers as a year instead of a values 
   mutate(year = year(date)) %>% 
   select(year, amphibian_species, amphibian_life_stage, amphibian_number, lake_id, amphibian_location) %>% 
-  group_by(year, amphibian_life_stage)
+  group_by(year, amphibian_life_stage) # selecting only the species, life stages, counts, lake id, and location variables that will be in the new dataset
 
-summary(yellow_frog)
+ #summary(yellow_frog)
 ```
 
 ```{r}
-# creating the graph
+# creating the graph to visualize the year and frog count throughout the entire year of the study
 yellow_frog_plot <- ggplot(data = yellow_frog, aes(fill = amphibian_life_stage, x = year, y = amphibian_number)) + 
   geom_bar(position = 'dodge', stat = 'identity') + 
-  scale_x_continuous(breaks = seq(from = 1995, to = 2002)) + 
-  labs(x = "Year", y = "Frog Count", title = "Mountain yellow-legged frog (Rana muscosa) count by life stage from 1995 to 2002", fill = "Life Stage") + scale_fill_manual(values = c("hotpink", "lightblue", "forestgreen")) +
+  scale_x_continuous(breaks = seq(from = 1995, to = 2002)) + # ensuring every year of the study is represented on the x-axis
+  labs(x = "Year", y = "Frog Count", title = "Mountain yellow-legged frog (Rana muscosa) count by life stage from 1995 to 2002", fill = "Life Stage") + scale_fill_manual(values = c("hotpink", "lightblue", "forestgreen")) # making the labels professional + 
   theme_bw()
 yellow_frog_plot
 
@@ -48,16 +48,17 @@ yellow_frog_plot
 
 ```{r}
 # going to wrangle more data by removing tadpoles from levels
-t5_sub_and_adult_y <- yellow_frog %>% 
+
+t5_sub_and_adult_y <- yellow_frog %>% # making new dataset and will remove tadpole lifestage 
   filter(amphibian_life_stage != 'Tadpole') %>% 
-  group_by(lake_id) %>% 
+  group_by(lake_id) %>% # grouping by lake_id
   drop_na() %>% 
-  summarise(total_frogs = sum(amphibian_number)) %>% 
-  slice_max(total_frogs, n = 5) %>% 
-  arrange(-total_frogs) # in high-to-low
+  summarise(total_frogs = sum(amphibian_number)) %>% # adding the counts of adult and subadult frog counts and renaming the column total_frogs that will correspond to a specific lake id
+  slice_max(total_frogs, n = 5) %>% # getting the top 5 biggest amount of total frogs
+  arrange(-total_frogs) # arranging them high-to-low in the dataset
 
 t5_rename <- t5_sub_and_adult_y %>% 
-  mutate(lake_id = factor(lake_id),
+  mutate(lake_id = factor(lake_id), # changing lake id to a factor and renaming the lake labels 
          lake_id = c("Lake 50183",
                     "Lake 10223",
                     "Lake 10329",
@@ -66,13 +67,15 @@ t5_rename <- t5_sub_and_adult_y %>%
 ```
 
 ```{r}
-#plotting the top 5 lakes with the most frog counts
-lake_plot <- ggplot(data = t5_rename, aes(x = fct_reorder(lake_id, total_frogs), y = total_frogs, fill = total_frogs)) + labs(x = "Lake Identification", y = "Combined Adult and Subadult frog count", title = "Total count of combined adult and subadult endangered mountain yellow-legged frogs in 5 lakes", fill = "Total Frogs") + scale_fill_gradient(low = "blue", high = "green") + geom_col()
+#plotting the top 5 lakes with the most frog counts using the new renamed dataset
+
+lake_plot <- ggplot(data = t5_rename, aes(x = fct_reorder(lake_id, total_frogs), y = total_frogs, fill = total_frogs))+ labs(x = "Lake Identification", y = "Combined Adult and Subadult frog count", title = "Total count of combined adult and subadult endangered mountain yellow-legged frogs in 5 lakes", fill = "Total Frogs") + scale_fill_gradient(low = "blue", high = "green") + geom_col() # using fct_reorder to display the different lakes on the x-axis by the total amount of frogs 
 lake_plot
 ```
 
 ```{r}
-# Combining two graphs into single figure 
+# Combining yellow_legged frog and lake_plot graphs into single figure and labeling them 'A' and 'B' and aligning them by the x and y axis
+
 plot_grid(yellow_frog_plot,lake_plot,
           nrows = 1,
           ncol = 2,
